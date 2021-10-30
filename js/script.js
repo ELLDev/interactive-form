@@ -1,5 +1,6 @@
 const nameInput = document.querySelector("#name");
 const emailInput = document.querySelector("#email");
+const emailHint = document.querySelector("#email-hint");
 const occupationSelect = document.querySelector('[name="user-title"]');
 const otherOccupationTextField = document.querySelector(
   "input.other-occupation"
@@ -17,10 +18,13 @@ let registrationCost = 0;
 const paymentMethods = document.querySelector("fieldset.payment-methods");
 const paymentSelect = document.querySelector('[id="payment"]');
 const creditCardSection = document.querySelector("div.credit-card");
+const payPalSection = document.querySelector("div.paypal");
+const bitcoinSection = document.querySelector("div.bitcoin");
 const creditCardNumber = document.querySelector("#cc-num");
 const creditCardCVV = document.querySelector("#cvv");
 const zipCode = document.querySelector("#zip");
 const registrationButton = document.querySelector("form button");
+const form = document.querySelector("form");
 
 const displayShirtColors = (shirtTheme) => {
   for (let index = 0; index < ratsInCostumesColors.length; index++) {
@@ -34,7 +38,7 @@ const displayShirtColors = (shirtTheme) => {
   }
 };
 
-const highlightFields = () => {
+const highlightNameInput = () => {
   if (!validateName()) {
     nameInput.parentElement.className = "not-valid";
     nameInput.nextElementSibling.style.display = "block";
@@ -42,6 +46,9 @@ const highlightFields = () => {
     nameInput.parentElement.className = "valid";
     nameInput.nextElementSibling.style.display = "none";
   }
+};
+
+const highlightEmailInput = () => {
   if (!validateEmail()) {
     emailInput.parentElement.className = "not-valid";
     emailInput.nextElementSibling.style.display = "block";
@@ -49,6 +56,9 @@ const highlightFields = () => {
     emailInput.parentElement.className = "valid";
     emailInput.nextElementSibling.style.display = "none";
   }
+};
+
+const highlightActivitiesFieldset = () => {
   if (!validateActivities()) {
     activities.firstElementChild.className = "not-valid";
     activities.className = "activities not-valid";
@@ -56,27 +66,57 @@ const highlightFields = () => {
     activities.firstElementChild.className = "valid";
     activities.className = "activities valid";
   }
+};
+
+const highlightCCNumberInput = () => {
   if (!validateCCNumber()) {
     paymentMethods.className = "payment-methods not-valid";
     creditCardNumber.nextElementSibling.style.display = "block";
   } else {
-    paymentMethods.className = "payment-methods valid";
     creditCardNumber.nextElementSibling.style.display = "none";
   }
+  if (validateCreditCard()) {
+    paymentMethods.className = "payment-methods valid";
+  } else {
+    paymentMethods.className = "payment-methods not-valid";
+  }
+};
+
+const highlightZipCodeInput = () => {
   if (!validateZipCode()) {
     paymentMethods.className = "payment-methods not-valid";
     zipCode.nextElementSibling.style.display = "block";
   } else {
-    paymentMethods.className = "payment-methods valid";
     zipCode.nextElementSibling.style.display = "none";
   }
+  if (validateCreditCard()) {
+    paymentMethods.className = "payment-methods valid";
+  } else {
+    paymentMethods.className = "payment-methods not-valid";
+  }
+};
+
+const highLightCVVInput = () => {
   if (!validateCVV()) {
     paymentMethods.className = "payment-methods not-valid";
     creditCardCVV.nextElementSibling.style.display = "block";
   } else {
-    paymentMethods.className = "payment-methods valid";
     creditCardCVV.nextElementSibling.style.display = "none";
   }
+  if (validateCreditCard()) {
+    paymentMethods.className = "payment-methods valid";
+  } else {
+    paymentMethods.className = "payment-methods not-valid";
+  }
+};
+
+const highlightFields = () => {
+  highlightNameInput();
+  highlightEmailInput();
+  highlightActivitiesFieldset();
+  highlightCCNumberInput();
+  highlightZipCodeInput();
+  highLightCVVInput();
 };
 
 const validateName = () => {
@@ -84,12 +124,20 @@ const validateName = () => {
 };
 
 const validateEmail = () => {
+  if (emailInput.value.trim().length === 0) {
+    emailHint.innerText = "Email field cannot be blank";
+  } else {    
+    emailHint.innerText = "Email address must be formatted correctly";
+  }
   // RFC 5322 Regex
   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
     emailInput.value
   );
 };
 
+/**
+ * Unchecks and dims an activity if there are conflicting schedules
+ */
 const validateActivitiesSchedule = (checkboxIndex) => {
   for (let index = 1; index < checkBoxes.length; index++) {
     if (
@@ -136,12 +184,32 @@ const validateCreditCard = () => {
   return false;
 };
 
+nameInput.addEventListener("keyup", () => {
+  highlightNameInput();
+});
+
+emailInput.addEventListener("keyup", () => {
+  highlightEmailInput();
+});
+
 occupationSelect.addEventListener("change", (e) => {
   if (e.target.value === "other") {
     otherOccupationTextField.style.display = "";
   } else {
     otherOccupationTextField.style.display = "none";
   }
+});
+
+creditCardNumber.addEventListener("keyup", () => {
+  highlightCCNumberInput();
+});
+
+zipCode.addEventListener("keyup", () => {
+  highlightZipCodeInput();
+});
+
+creditCardCVV.addEventListener("keyup", () => {
+  highLightCVVInput();
 });
 
 designSelect.addEventListener("change", (e) => {
@@ -162,6 +230,7 @@ activities.addEventListener("change", (e) => {
     }
     registrationCostDisplay.innerHTML = `Total: $${registrationCost}`;
   }
+  highlightActivitiesFieldset();
 });
 
 checkBoxes.forEach((checkbox, checkboxIndex) => {
@@ -186,12 +255,20 @@ checkBoxes.forEach((checkbox, checkboxIndex) => {
 paymentSelect.addEventListener("change", (e) => {
   if (e.target.value === "credit-card") {
     creditCardSection.style.display = "";
-  } else {
+    payPalSection.style.display = "none";
+    bitcoinSection.style.display = "none";
+  } else if (e.target.value === "paypal") {
     creditCardSection.style.display = "none";
+    payPalSection.style.display = "";
+    bitcoinSection.style.display = "none";
+  } else if (e.target.value === "bitcoin") {
+    creditCardSection.style.display = "none";
+    payPalSection.style.display = "none";
+    bitcoinSection.style.display = "";
   }
 });
 
-registrationButton.addEventListener("click", (e) => {
+form.addEventListener("submit", (e) => {
   let validCredentials = false;
 
   if (validateName() && validateEmail() && validateActivities()) {
@@ -209,6 +286,8 @@ registrationButton.addEventListener("click", (e) => {
 });
 
 paymentSelect.options[1].selected = true;
+payPalSection.style.display = "none";
+bitcoinSection.style.display = "none";
 colorSelect.disabled = true;
 otherOccupationTextField.style.display = "none";
 nameInput.focus();

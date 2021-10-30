@@ -493,6 +493,15 @@ button:hover {
   border-color: rgb(9, 73, 250) !important;
 }
 
+fieldset .focus {
+  border: none;
+  outline: none;
+  border-radius: 1px;
+  box-shadow: 0 0 3px 2px rgb(9, 73, 250);
+  background-color: #fff6e3;
+  transition: 0.2s;
+}
+
 .disabled {
   cursor: not-allowed !important;
   background: rgba(197, 163, 175, 0.1) !important;
